@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('../partials/head'); %>
+  </head>
+  <body class="container">
+    <header><%- include('../partials/header'); %></header>
+    <main>
+      <%if (typeof(error) !== "undefined" && error === true) { %>
+      <div class="alert alert-danger" role="alert"><%= messages %></div>
+      <% } %> <% if (typeof(error) !== "undefined" && error === false) { %>
+      <div class="alert alert-success" role="alert"><%= messages %></div>
+      <% } %>
+
+      <form action="/create" method="post">
+        <div class="form-group">
+          <label>Urutan Keluarga</label>
+          <div class="mb-3">
+            <select
+              name="order"
+              id="order"
+              class="form-control"
+              onChange="selectedOption(this.options[this.selectedIndex].value)"
+            >
+              <option value="" selected>Select</option>
+              <option value="1">Orang tua</option>
+              <option value="2">Anak</option>
+              <option value="3">Cucu</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" id="divChild">
+          <div class="mb-3">
+            <input
+              type="text"
+              id="child"
+              class="form-control form-control-lg"
+              placeholder="Type Your Parents"
+            />
+            <span id="search_result"></span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary mb-2">Post Now</button>
+      </form>
+    </main>
+
+    <footer><%- include('../partials/footer'); %></footer>
+  </body>
+
+  <script>
+    function selectedOption(chosen) {
+      if (chosen == 1) {
+        document.getElementById("divChild").style.display = "none";
+      } else if (chosen == 3) {
+        document.getElementById("divChild").style.display = "block";
+      } else {
+        document.getElementById("divChild").style.display = "block";
+      }
+    }
+
+    function load_data(query = "") {
+      fetch("/parent?search_query=" + query + "")
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (responseData) {
+          var html = '<ul class="list-group">';
+
+          if (responseData.length > 0) {
+            for (var count = 0; count < responseData.length; count++) {
+              var regular_expression = new RegExp("(" + query + ")", "gi");
+
+              html +=
+                '<a href="#" class="list-group-item list-group-item-action" onclick="get_text(this)">' +
+                responseData[count].name.replace(
+                  regular_expression,
+                  '<span class="text-primary fw-bold">$1</span>'
+                ) +
+                "</a>";
+            }
+          } else {
+            html +=
+              '<a href="#" class="list-group-item list-group-item-action disabled">No Data Found</a>';
+          }
+          html += "</ul>";
+          document.getElementById("search_result").innerHTML = html;
+        });
+    }
+
+    var search_element = document.getElementById("child");
+
+    search_element.onkeyup = function () {
+      var query = search_element.value;
+      load_data(query);
+    };
+
+    search_element.onfocus = function () {
+      var query = search_element.value;
+
+      load_data(query);
+    };
+
+    function get_text(event) {
+      var name = event.textContent;
+      console.log(name);
+      document.getElementById("child").value = name;
+      document.getElementById("search_result").innerHTML = "";
+    }
+  </script>
+</html>
